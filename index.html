@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat Application</title>
+  <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+<body>
+  <div id="container">
+    <div id="log">
+      <!-- Sent messages on the right -->
+      <!-- <div class="message right"></div> -->
+      <!-- Received messages on the left -->
+      <!-- <div class="message left"></div> -->
+    </div>
+    <div id="sendCtrls">
+      <input type="text" id="text" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+      <button id="sndbtn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+
+  <script>
+    var name = prompt('Enter your name!');
+
+    var sock = new WebSocket("ws://localhost:8080");
+
+    sock.onopen = function () {
+      sock.send(JSON.stringify({
+        type: "name",
+        data: name
+      }));
+    }
+
+    var log = document.getElementById('log');
+
+    sock.onmessage = function (event) {
+      var json = JSON.parse(event.data);
+      log.innerHTML += '<div class="message left">' + json.data + '</div>';
+    }
+
+    // Function to handle the Enter key press event in the text input
+    function handleKeyPress(event) {
+      if (event.keyCode === 13) { // 13 is the keycode for Enter key
+        sendMessage(); // Call the sendMessage function when Enter key is pressed
+      }
+    }
+
+    // Function to send a message
+    function sendMessage() {
+      var text = document.getElementById('text').value.trim();
+      if (text === '') return; // Do not send empty messages
+      sock.send(JSON.stringify({
+        type: "message",
+        data: text
+      }));
+      log.innerHTML += '<div class="message right">' + text + '</div>';
+      clearTextField();
+    }
+
+    // Function to clear the text field
+    function clearTextField() {
+      document.getElementById('text').value = '';
+    }
+  </script>
+</body>
+</html>
